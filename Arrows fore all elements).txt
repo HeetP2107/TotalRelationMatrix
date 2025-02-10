@@ -1,0 +1,57 @@
+import numpy as np       #Importing Libraries used for dealing with arrays and numerical operations
+import matplotlib as mp  #Importing Libraries used for plotting graphs 
+import pandas as pd      #Importing Libraries used for data analysis
+from matplotlib.patches import FancyArrowPatch #To generate arrows in the graph.
+
+Input = pd.read_csv(r'C:\Users\...\Desktop\Inputdata.csv') #.csv files are used for data analytics, these help in storing large data set which we use in python
+
+sumrow = np.sum(Input, axis=1)      #Calculating sum of values in rows
+sumcolumn = np.sum(Input, axis=0)   #Calculating sum of values in columns
+maxrow = 1/np.max(sumrow)           #Calculating inverse of maximum row sum
+maxcolumn = 1/np.max(sumcolumn)     #Calculating inverse of maximum column sum
+maxvector = [maxrow,maxcolumn]      #Generating a vector containing values from maximum row and column 
+
+s = np.min(maxvector)               #Selecting the minimum value from the max vector
+
+D = Input*s                         #Generation of a normalized matrix
+
+I = np.identity(len(sumrow))        #Generating an Identity Matrix for 
+
+Difference = I - D
+Inversematrix = np.linalg.inv(Difference)
+
+T = np.matmul(D,Inversematrix)      #Generating a total relational matrix using normalized matrix and inversematrix. We have used np.matmul for multiplication of two different matrices
+
+R = np.sum(T, axis=1)               #Summation of row values in the Total Relational Matrix
+C = np.sum(T, axis=0)               #Summation of column values in the Total Relational Matrix
+
+Prominence = R+C                    #prominence is defined by adding the values R and C
+Relation = R-C                      #relation is defined by the difference between the R and C
+KPI = pd.read_csv(r'C:\Users\...\Desktop\KPI.csv') #.csv file having the Key Performance Indicators
+
+mp.pyplot.scatter(Prominence,Relation)
+mp.pyplot.gca().update(dict(title='Relation Graph', xlabel='Prominence', ylabel='Relation'))
+mp.pyplot.grid()
+
+for (xi, yi, zi) in zip(Prominence, Relation, KPI):
+    mp.pyplot.text(xi+0.015, yi-0.2, zi, va='bottom', ha='left')
+    
+#mp.pyplot.xlim(3,7)              #these commands sets limits for the axes of the graph
+#mp.pyplot.ylim(-1.5,1.5)
+
+mp.pyplot.rcParams['figure.dpi'] = 1200    #these commands increase the quality of the figure
+mp.pyplot.rcParams['savefig.dpi'] = 1200
+
+#Add curved arrows from non-zero elements in the input matrix
+arrow_scale = 0.2  # Adjust this value to control the curvature of arrows
+for i in range(len(M)):
+    for j in range(len(M)):
+        if M.iloc[i, j] != 0:
+            dx = Prominence[j] - Prominence[i]
+            dy = Relation[j] - Relation[i]
+            length = np.sqrt(dx**2 + dy**2)
+            dx *= arrow_scale / length
+            dy *= arrow_scale / length
+            arrow = FancyArrowPatch((Prominence[i], Relation[i]), (Prominence[j], Relation[j]),
+                                    arrowstyle='->', mutation_scale=10, color='darkgray', linewidth=1)
+            mp.pyplot.gca().add_patch(arrow)
