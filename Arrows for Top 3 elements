@@ -1,0 +1,74 @@
+import numpy as np
+import matplotlib as mp
+import pandas as pd
+from matplotlib.patches import FancyArrowPatch
+
+M = pd.read_csv(r'D:\#562\Week4\Input_2.csv')
+
+sumrow = np.sum(M, axis=1)
+sumcolumn = np.sum(M, axis=0)
+maxrow = 1/np.max(sumrow)
+maxcolumn = 1/np.max(sumcolumn)
+maxvector = [maxrow,maxcolumn]
+
+s = np.min(maxvector)
+
+D = M*s
+
+I = np.identity(len(sumrow))
+
+Difference = I - D
+Inversematrix = np.linalg.inv(Difference)
+
+T = np.matmul(D,Inversematrix)
+
+R = np.sum(T, axis=1)
+C = np.sum(T, axis=0)
+
+Prominence = R+C
+Relation = R-C
+
+KPI = pd.read_csv(r'D:\#562\Week4\KPI_2.csv')
+
+mp.pyplot.scatter(Prominence,Relation)
+mp.pyplot.gca().update(dict(title='Relation Graph', xlabel='Prominence', ylabel='Relation'))
+mp.pyplot.grid()
+
+for (xi, yi, zi) in zip(Prominence, Relation, KPI):
+    mp.pyplot.text(xi+0.015, yi-0.2, zi, va='bottom', ha='left')
+    
+#mp.pyplot.xlim(7,14) #these commands sets limits for the axes of the graph
+#mp.pyplot.ylim(-1.5,1.5)
+
+mp.pyplot.rcParams['figure.dpi'] = 1200 #these commands increase the quality of the figure
+mp.pyplot.rcParams['savefig.dpi'] = 1200
+
+# Get the indices of the top three elements with the highest prominence
+top_indices = np.argsort(Prominence)[-3:]
+
+# Add curved arrows from the top three elements with higher prominence to others
+arrow_scale = 0.2  # Adjust this value to control the curvature of arrows
+for i in top_indices:
+    for j in range(len(M)):
+        if M.iloc[i, j] != 0 and i not in top_indices:
+            dx = Prominence[j] - Prominence[i]
+            dy = Relation[j] - Relation[i]
+            length = np.sqrt(dx**2 + dy**2)
+            dx *= arrow_scale / length
+            dy *= arrow_scale / length
+            arrow = FancyArrowPatch((Prominence[i], Relation[i]), (Prominence[j], Relation[j]),
+                                    arrowstyle='<->', mutation_scale=10, color='red', linewidth=2)
+            mp.pyplot.gca().add_patch(arrow)
+            
+arrow_scale = 0.2  # Adjust this value to control the curvature of arrows
+for i in range(len(M)):
+    for j in range(len(M)):
+        if M.iloc[i, j] != 0:
+            dx = Prominence[j] - Prominence[i]
+            dy = Relation[j] - Relation[i]
+            length = np.sqrt(dx**2 + dy**2)
+            dx *= arrow_scale / length
+            dy *= arrow_scale / length
+            arrow = FancyArrowPatch((Prominence[i], Relation[i]), (Prominence[j], Relation[j]),
+                                    arrowstyle='->', mutation_scale=10, color='gray', linewidth=1)
+            mp.pyplot.gca().add_patch(arrow)
